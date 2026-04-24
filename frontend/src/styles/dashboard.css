@@ -1,0 +1,112 @@
+/* Dashboard-specific styles */
+/* Uses reusable classes from components.css + page-specific overrides */
+
+.dashboard-container {
+  max-width: 1400px;
+}
+
+.page-title {
+  font-family: var(--font-head);
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--white);
+  margin-bottom: 0.5rem;
+}
+
+.section-title {
+  font-family: var(--font-head);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--white);
+}
+
+/* Stat Cards */
+.stat-card {
+  border: 2px solid rgba(255, 255, 255, 0.05);
+  transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stat-card:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-4px);
+}
+
+/* Candidate Row */
+.candidate-row {
+  padding: 1.25rem;
+  cursor: pointer;
+}
+
+.candidate-row:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* Job Row */
+.job-row {
+  padding: 1.25rem;
+  cursor: pointer;
+}
+
+.job-row:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* Spacing utilities specific to dashboard */
+.mb-10 { margin-bottom: 0.625rem; }
+.mb-15 { margin-bottom: 0.938rem; }
+.mb-20 { margin-bottom: 1.25rem; }
+.mb-30 { margin-bottom: 1.875rem; }
+
+.mt-30 { margin-top: 1.875rem; }
+
+.space-y-10 > * + * { margin-top: 0.625rem; }
+.space-y-15 > * + * { margin-top: 0.938rem; }
+
+/* Responsive layout */
+@media (max-width: 1024px) {
+  .grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .grid-cols-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .dashboard-container {
+    padding: 1rem;
+  }
+
+  .grid-cols-4,
+  .grid-cols-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-card {
+    padding: 1rem;
+  }
+
+  .flex-between {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .page-title {
+    font-size: 1.25rem;
+  }
+
+  .section-title {
+    font-size: 1rem;
+  }
+
+  .candidate-row,
+  .job-row {
+    padding: 1rem;
+    flex-direction: column;
+  }
+}

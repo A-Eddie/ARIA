@@ -1,0 +1,94 @@
+// firebase/firestore.rules
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helper functions ─────────────────────────────────────
+    function isAuth() {
+      return request.auth != null;
+    }
+    function uid() {
+      return request.auth.uid;
+    }
+    function companyId() {
+      return request.auth.token.companyId;
+    }
+    function isCompanyOwner(cid) {
+      return isAuth() && companyId() == cid;
+    }
+
+    // ── Companies ────────────────────────────────────────────
+    match /companies/{companyId} {
+      allow read:   if isAuth() && companyId() == companyId;
+      allow create: if isAuth() && request.resource.data.ownerId == uid();
+      allow update: if isAuth() && companyId() == companyId
+                    && request.resource.data.ownerId == resource.data.ownerId; // can't transfer ownership
+      allow delete: if false; // only via Admin SDK
+    }
+
+    // ── Users ────────────────────────────────────────────────
+    match /users/{userId} {
+      allow read:   if isAuth() && uid() == userId;
+      allow create: if isAuth() && uid() == userId;
+      allow update: if isAuth() && uid() == userId
+                    && request.resource.data.companyId == resource.data.companyId; // can't change company
+      allow delete: if false;
+    }
+
+    // ── Jobs ─────────────────────────────────────────────────
+    match /jobs/{jobId} {
+      allow read:   if isAuth() && isCompanyOwner(resource.data.companyId);
+      allow create: if isAuth() && isCompanyOwner(request.resource.data.companyId)
+                    && request.resource.data.keys().hasAll(['title','companyId','token','status']);
+      allow update: if isAuth() && isCompanyOwner(resource.data.companyId);
+      allow delete: if isAuth() && isCompanyOwner(resource.data.companyId);
+    }
+
+    // ── Candidates ───────────────────────────────────────────
+    match /candidates/{candidateId} {
+      // Company can read/update their own candidates
+      allow read:   if isAuth() && isCompanyOwner(resource.data.companyId);
+      allow update: if isAuth() && isCompanyOwner(resource.data.companyId);
+      allow delete: if isAuth() && isCompanyOwner(resource.data.companyId);
+      // Public: candidates create their own record (unauthenticated, via backend)
+      allow create: if true; // backend validates via Admin SDK
+    }
+
+    // ── Interviews ───────────────────────────────────────────
+    match /interviews/{interviewId} {
+      allow read:   if isAuth() && isCompanyOwner(resource.data.companyId);
+      allow create: if true;   // backend creates on behalf of candidate
+      allow update: if true;   // backend updates during conversation
+      allow delete: if isAuth() && isCompanyOwner(resource.data.companyId);
+    }
+
+    // ── Evaluations ──────────────────────────────────────────
+    match /evaluations/{evalId} {
+      allow read:   if isAuth() && isCompanyOwner(resource.data.companyId);
+      allow create: if false;  // only backend (Admin SDK) creates evaluations
+      allow update: if false;
+      allow delete: if isAuth() && isCompanyOwner(resource.data.companyId);
+    }
+
+    // ── Assignments ──────────────────────────────────────────
+    match /assignments/{assignId} {
+      allow read:   if isAuth() && isCompanyOwner(resource.data.companyId);
+      allow create: if false;  // only backend
+      allow update: if false;
+      allow delete: if isAuth() && isCompanyOwner(resource.data.companyId);
+    }
+
+    // ── Activity logs ────────────────────────────────────────
+    match /activity_logs/{logId} {
+      allow read:   if isAuth() && isCompanyOwner(resource.data.companyId);
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // ── Deny all else ─────────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
